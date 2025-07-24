@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { toRefs, watch } from 'vue';
+import { toRefs, watch, ref, onMounted } from 'vue';
+import { ElMessage } from 'element-plus';
 import type { Account } from '../types/account';
+import { useValidateAccount } from '../composables/useValidateAccount';
 
 const props = defineProps<{
   account: Account;
+  focusLabel?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -12,8 +15,22 @@ const emit = defineEmits<{
 }>();
 
 const { label, type, login, password, isValid } = toRefs(props.account);
+const inputRef = ref<HTMLInputElement | null>(null);
+
+const { errors, validate, wasEverValid } = useValidateAccount(props.account);
 
 watch([label, type, login, password], () => {
+  const valid = validate();
+
+  if (valid && !wasEverValid.value) {
+    ElMessage({
+      message: 'Учетная запись сохранена',
+      type: 'success',
+      duration: 1500,
+    });
+    wasEverValid.value = true;
+  }
+
   emit('update', {
     id: props.account.id,
     label: label.value,
@@ -21,8 +38,14 @@ watch([label, type, login, password], () => {
     login: login.value,
     password: type.value === 'Локальная' ? password.value : null,
     labelTags: props.account.labelTags,
-    isValid: isValid.value,
+    isValid: valid,
   });
+});
+
+onMounted(() => {
+  if (props.focusLabel && inputRef.value) {
+    inputRef.value.focus();
+  }
 });
 </script>
 
@@ -30,18 +53,23 @@ watch([label, type, login, password], () => {
   <el-card :class="{ invalid: !isValid }">
     <div class="fields">
       <div class="field">
-        <label>Метка</label>
+        <label :for="`label-${props.account.id}`">Метка</label>
         <el-input
+          :id="`label-${props.account.id}`"
+          ref="inputRef"
           v-model="label"
           placeholder="Метка (через ;)"
           maxlength="50"
           clearable
+          @blur="validate"
         />
-      </div>
+  <div class="error" v-if="errors.label">{{ errors.label }}</div>
+</div>
 
       <div class="field">
-        <label>Тип записи</label>
+        <label :for="`type-${props.account.id}`">Тип записи</label>
         <el-select
+          :id="`type-${props.account.id}`"
           v-model="type"
           placeholder="Тип"
           style="width: 150px"
@@ -52,24 +80,30 @@ watch([label, type, login, password], () => {
       </div>
 
       <div class="field">
-        <label>Логин</label>
+        <label :for="`login-${props.account.id}`">Логин</label>
         <el-input
+          :id="`login-${props.account.id}`"
           v-model="login"
           placeholder="Логин"
           maxlength="100"
           clearable
+          @blur="validate"
         />
+        <div class="error" v-if="errors.login">{{ errors.login }}</div>
       </div>
 
       <div class="field" v-if="type === 'Локальная'">
-        <label>Пароль</label>
+        <label :for="`password-${props.account.id}`">Пароль</label>
         <el-input
+          :id="`password-${props.account.id}`"
           v-model="password"
           type="password"
           placeholder="Пароль"
           maxlength="100"
           clearable
+          @blur="validate"
         />
+        <div class="error" v-if="errors.password">{{ errors.password }}</div>
       </div>
 
       <div class="field delete">
@@ -99,6 +133,12 @@ label {
   color: #555;
 }
 
+.error {
+  color: #f56c6c;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
 .delete {
   padding-top: 22px;
 }
@@ -108,8 +148,9 @@ label {
 }
 
 :deep(.el-input__inner) {
-  padding-right: 36px;
+  padding-right: 36px !important;
 }
+
 :deep(.el-input__suffix) {
   width: 24px !important;
   min-width: 24px !important;
@@ -122,18 +163,20 @@ label {
   align-items: center;
   pointer-events: none;
 }
+
 :deep(.el-input__clear) {
-  position: absolute;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.16s ease;
-  right: 0;
+  position: absolute;
+  right: 8px;
   top: 50%;
   transform: translateY(-50%);
 }
+
 :deep(.el-input:hover .el-input__clear),
 :deep(.el-input.is-focus .el-input__clear) {
   opacity: 1;
-  pointer-events: all;
+  pointer-events: auto;
 }
 </style>
