@@ -1,4 +1,4 @@
-import type { Account } from '@/types/account';
+import type { Account } from '../types/account';
 
 export const validateAccount = (account: Account): boolean => {
   const loginValid = !!account.login && account.login.length <= 100;
