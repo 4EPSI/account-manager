@@ -46,6 +46,7 @@ onMounted(() => {
   if (props.focusLabel && inputRef.value) {
     inputRef.value.focus();
   }
+  validate();
 });
 </script>
 
