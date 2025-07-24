@@ -29,39 +29,52 @@ watch([label, type, login, password], () => {
 <template>
   <el-card :class="{ invalid: !isValid }">
     <div class="fields">
-      <el-input
-        v-model="label"
-        placeholder="Метка (через ;)"
-        maxlength="50"
-        clearable
-      />
+      <div class="field">
+        <label>Метка</label>
+        <el-input
+          v-model="label"
+          placeholder="Метка (через ;)"
+          maxlength="50"
+          clearable
+        />
+      </div>
 
-      <el-select
-        v-model="type"
-        placeholder="Тип"
-        style="width: 150px"
-      >
-        <el-option label="LDAP" value="LDAP" />
-        <el-option label="Локальная" value="Локальная" />
-      </el-select>
+      <div class="field">
+        <label>Тип записи</label>
+        <el-select
+          v-model="type"
+          placeholder="Тип"
+          style="width: 150px"
+        >
+          <el-option label="LDAP" value="LDAP" />
+          <el-option label="Локальная" value="Локальная" />
+        </el-select>
+      </div>
 
-      <el-input
-        v-model="login"
-        placeholder="Логин"
-        maxlength="100"
-        clearable
-      />
+      <div class="field">
+        <label>Логин</label>
+        <el-input
+          v-model="login"
+          placeholder="Логин"
+          maxlength="100"
+          clearable
+        />
+      </div>
 
-      <el-input
-        v-if="type === 'Локальная'"
-        v-model="password"
-        type="password"
-        placeholder="Пароль"
-        maxlength="100"
-        clearable
-      />
+      <div class="field" v-if="type === 'Локальная'">
+        <label>Пароль</label>
+        <el-input
+          v-model="password"
+          type="password"
+          placeholder="Пароль"
+          maxlength="100"
+          clearable
+        />
+      </div>
 
-      <el-button type="danger" @click="emit('delete', props.account.id)">Удалить</el-button>
+      <div class="field delete">
+        <el-button type="danger" @click="emit('delete', props.account.id)">Удалить</el-button>
+      </div>
     </div>
   </el-card>
 </template>
@@ -71,9 +84,56 @@ watch([label, type, login, password], () => {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  align-items: center;
+  align-items: flex-start;
 }
+
+.field {
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+}
+
+label {
+  font-size: 0.875rem;
+  margin-bottom: 4px;
+  color: #555;
+}
+
+.delete {
+  padding-top: 22px;
+}
+
 .invalid {
   border: 1px solid red;
+}
+
+:deep(.el-input__inner) {
+  padding-right: 36px;
+}
+:deep(.el-input__suffix) {
+  width: 24px !important;
+  min-width: 24px !important;
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  pointer-events: none;
+}
+:deep(.el-input__clear) {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.16s ease;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+:deep(.el-input:hover .el-input__clear),
+:deep(.el-input.is-focus .el-input__clear) {
+  opacity: 1;
+  pointer-events: all;
 }
 </style>
